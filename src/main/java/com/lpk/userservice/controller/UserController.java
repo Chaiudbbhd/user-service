@@ -3,6 +3,9 @@ package com.lpk.userservice.controller;
 import com.lpk.userservice.model.User;
 import com.lpk.userservice.security.JwtTokenProvider;
 import com.lpk.userservice.service.UserService;
+
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,9 +32,22 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User user) {
-        authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));
-        String token = tokenProvider.generateToken(user.getEmail());
-        return ResponseEntity.ok().body(token);
+public ResponseEntity<?> login(@RequestBody User user) {
+    Optional<User> existingUserOpt = userService.findByEmail(user.getEmail());
+
+    if (existingUserOpt.isEmpty()) {
+        return ResponseEntity.status(401).body("Invalid email");
     }
+
+    User existingUser = existingUserOpt.get();
+
+    if (!userService.passwordMatches(user.getPassword(), existingUser.getPassword())) {
+        return ResponseEntity.status(401).body("Invalid password");
+    }
+
+    String token = tokenProvider.generateToken(existingUser.getEmail());
+    return ResponseEntity.ok().body(token);
+}
+
+
 }

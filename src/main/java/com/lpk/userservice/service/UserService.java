@@ -28,4 +28,10 @@ public class UserService {
     public Optional<User> findById(String id) {
         return userRepository.findById(id);
     }
+
+    // NEW METHOD: compare raw password with hashed password
+    public boolean passwordMatches(String rawPassword, String hashedPassword) {
+        return passwordEncoder.matches(rawPassword, hashedPassword);
+    }
 }
+
