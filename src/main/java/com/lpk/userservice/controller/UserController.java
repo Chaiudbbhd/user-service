@@ -37,25 +37,29 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User user) {
-        try {
-            System.out.println("Login attempt for email: " + user.getEmail());
-            Optional<User> existingUser = userService.findByEmail(user.getEmail());
-            if (existingUser.isPresent()) {
-                boolean matches = passwordEncoder.matches(user.getPassword(), existingUser.get().getPassword());
-                System.out.println("Password match: " + matches);
-                if (matches) {
-                    String token = tokenProvider.generateToken(existingUser.get().getEmail());
-                    return ResponseEntity.ok(Collections.singletonMap("token", token));
-                } else {
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
-                }
+public ResponseEntity<?> login(@RequestBody User user) {
+    try {
+        System.out.println("Login attempt for email: " + user.getEmail());
+        Optional<User> existingUser = userService.findByEmail(user.getEmail());
+        if (existingUser.isPresent()) {
+            boolean matches = passwordEncoder.matches(user.getPassword(), existingUser.get().getPassword());
+            System.out.println("Password match: " + matches);
+            if (matches) {
+                String token = tokenProvider.generateToken(existingUser.get().getEmail());
+                return ResponseEntity.ok(Collections.singletonMap("token", token));
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Collections.singletonMap("error", "Invalid credentials"));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.internalServerError().body("An error occurred: " + e.getMessage());
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Collections.singletonMap("error", "Invalid credentials"));
         }
+    } catch (Exception e) {
+        e.printStackTrace();
+        return ResponseEntity.internalServerError()
+                .body(Collections.singletonMap("error", "An error occurred: " + e.getMessage()));
     }
+}
+
 }
