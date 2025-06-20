@@ -9,8 +9,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 import java.util.Arrays;
 
@@ -27,39 +29,37 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 
-    // ✅ CORS configuration that Spring Security will use
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .cors(withDefaults())
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(authz -> authz
+                                .requestMatchers("/api/users/login", "/api/users/register").permitAll()
+                                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // ✅ Allow preflight
+                                .anyRequest().authenticated()
+                );
+
+        return http.build();
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         
-        // Replace or extend with your actual frontends
-        config.setAllowedOriginPatterns(Arrays.asList(
-            "http://localhost:*",              // general localhost
-            "http://localhost:8084",           // exact dev frontend
-            "https://your-frontend-domain.com" // production frontend (replace with real one)
+        // ✅ Explicitly allow your frontend origin
+        config.setAllowedOrigins(Arrays.asList(
+            "http://localhost:8084", // Local frontend
+            "https://your-frontend.onrender.com" // If deployed frontend
         ));
 
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setExposedHeaders(Arrays.asList("Authorization"));
-        config.setAllowCredentials(true); // ⚠️ Required to include cookies/headers
+        config.setAllowCredentials(true); // Important for sending cookies or auth headers
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-        return source;
-    }
-
-    // ✅ Hook CORS into Spring Security
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/api/users/login", "/api/users/register").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // For preflight
-                .anyRequest().authenticated()
-            );
-        return http.build();
+        return new CorsFilter(source);
     }
 }
