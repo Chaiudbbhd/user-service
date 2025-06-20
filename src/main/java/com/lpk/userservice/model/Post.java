@@ -3,6 +3,7 @@ package com.lpk.userservice.model;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Date;
+import java.util.List;
 
 @Document(collection = "posts")
 public class Post {
@@ -15,6 +16,10 @@ public class Post {
     private String visibility;
     private Date createdAt;
     private Date updatedAt;
+    private String excerpt;
+    private String image;
+    private List<String> tags;
+
 
     public Post() {
         // Default constructor
@@ -85,4 +90,28 @@ public class Post {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
+    public String getExcerpt() {
+    return excerpt;
+}
+
+public void setExcerpt(String excerpt) {
+    this.excerpt = excerpt;
+}
+
+public String getImage() {
+    return image;
+}
+
+public void setImage(String image) {
+    this.image = image;
+}
+
+public List<String> getTags() {
+    return tags;
+}
+
+public void setTags(List<String> tags) {
+    this.tags = tags;
+}
+
 }
