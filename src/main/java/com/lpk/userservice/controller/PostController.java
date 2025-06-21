@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -33,5 +34,47 @@ public class PostController {
     @GetMapping("/public")
     public List<Post> getPublicPosts() {
         return postRepository.findByVisibility("PUBLIC");
+    }
+
+    // ✅ Toggle visibility (PUBLIC <-> PRIVATE)
+    @PatchMapping("/{id}/visibility")
+    public Post toggleVisibility(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        String email = tokenProvider.getUsernameFromToken(token);
+
+        Optional<Post> optionalPost = postRepository.findById(id);
+        if (optionalPost.isPresent()) {
+            Post post = optionalPost.get();
+            if (!post.getUserId().equals(email)) {
+                throw new RuntimeException("Unauthorized to change visibility of this post");
+            }
+
+            String newVisibility = post.getVisibility().equals("PUBLIC") ? "PRIVATE" : "PUBLIC";
+            post.setVisibility(newVisibility);
+            post.setUpdatedAt(new Date());
+            return postRepository.save(post);
+        } else {
+            throw new RuntimeException("Post not found");
+        }
+    }
+
+    // ✅ Delete post
+    @DeleteMapping("/{id}")
+    public String deletePost(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        String email = tokenProvider.getUsernameFromToken(token);
+
+        Optional<Post> optionalPost = postRepository.findById(id);
+        if (optionalPost.isPresent()) {
+            Post post = optionalPost.get();
+            if (!post.getUserId().equals(email)) {
+                throw new RuntimeException("Unauthorized to delete this post");
+            }
+
+            postRepository.deleteById(id);
+            return "Post deleted successfully.";
+        } else {
+            throw new RuntimeException("Post not found");
+        }
     }
 }
