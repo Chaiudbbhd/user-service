@@ -1,12 +1,10 @@
 package com.lpk.userservice.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -16,20 +14,19 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret}")
-    private String jwtSecretEncoded;  // Should be base64 encoded key (from Render env)
+    @Value("${jwt.secret}") // Must be a Base64-encoded key in application.properties or Render env
+    private String jwtSecretEncoded;
 
     private SecretKey jwtSecretKey;
 
-    private final long JWT_EXPIRATION = 86400000;  // 1 day
+    private final long JWT_EXPIRATION = 86400000L; // 1 day in ms
 
     @PostConstruct
-public void init() {
-    byte[] decodedKey = Base64.getDecoder().decode(jwtSecretEncoded);
-    System.out.println("Decoded key length: " + decodedKey.length * 8 + " bits");
-    jwtSecretKey = Keys.hmacShaKeyFor(decodedKey);
-}
-
+    public void init() {
+        byte[] decodedKey = Base64.getDecoder().decode(jwtSecretEncoded);
+        System.out.println("Decoded key length: " + decodedKey.length * 8 + " bits");
+        jwtSecretKey = Keys.hmacShaKeyFor(decodedKey);
+    }
 
     public String generateToken(String email) {
         return Jwts.builder()
@@ -47,5 +44,25 @@ public void init() {
                 .parseClaimsJws(token)
                 .getBody();
         return claims.getSubject();
+    }
+
+    public boolean validateToken(String token, UserDetails userDetails) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(jwtSecretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String username = claims.getSubject();
+            return (username.equals(userDetails.getUsername()) && !isTokenExpired(claims));
+        } catch (JwtException | IllegalArgumentException ex) {
+            System.out.println("Invalid JWT: " + ex.getMessage());
+            return false;
+        }
+    }
+
+    private boolean isTokenExpired(Claims claims) {
+        return claims.getExpiration().before(new Date());
     }
 }
