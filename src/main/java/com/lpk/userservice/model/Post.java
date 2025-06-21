@@ -19,6 +19,7 @@ public class Post {
     private String excerpt;
     private String image;
     private List<String> tags;
+    private String slug;
 
 
     public Post() {
@@ -37,6 +38,13 @@ public class Post {
 
     public String getUserId() {
         return userId;
+    }
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 
     public void setUserId(String userId) {
