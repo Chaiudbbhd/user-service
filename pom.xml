@@ -63,11 +63,13 @@
 
 
         <!-- https://mvnrepository.com/artifact/com.cloudinary/cloudinary-core -->
+<!-- Cloudinary Java SDK -->
 <dependency>
-    <groupId>com.cloudinary</groupId>
-    <artifactId>cloudinary-core</artifactId>
-    <version>1.38.0</version>
+  <groupId>com.cloudinary</groupId>
+  <artifactId>cloudinary-http44</artifactId>
+  <version>1.38.0</version>
 </dependency>
+
 
         <!-- JWT -->
         <dependency>
