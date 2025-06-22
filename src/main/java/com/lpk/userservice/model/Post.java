@@ -2,6 +2,7 @@ package com.lpk.userservice.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.Date;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class Post {
     private String image;
     private List<String> tags;
     private String slug;
-
+    private Author author;
 
     public Post() {
         // Default constructor
@@ -38,13 +39,6 @@ public class Post {
 
     public String getUserId() {
         return userId;
-    }
-    public String getSlug() {
-        return slug;
-    }
-
-    public void setSlug(String slug) {
-        this.slug = slug;
     }
 
     public void setUserId(String userId) {
@@ -98,28 +92,44 @@ public class Post {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
+
     public String getExcerpt() {
-    return excerpt;
-}
+        return excerpt;
+    }
 
-public void setExcerpt(String excerpt) {
-    this.excerpt = excerpt;
-}
+    public void setExcerpt(String excerpt) {
+        this.excerpt = excerpt;
+    }
 
-public String getImage() {
-    return image;
-}
+    public String getImage() {
+        return image;
+    }
 
-public void setImage(String image) {
-    this.image = image;
-}
+    public void setImage(String image) {
+        this.image = image;
+    }
 
-public List<String> getTags() {
-    return tags;
-}
+    public List<String> getTags() {
+        return tags;
+    }
 
-public void setTags(List<String> tags) {
-    this.tags = tags;
-}
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
 
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
+    }
+
+    public Author getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(Author author) {
+        this.author = author;
+    }
 }

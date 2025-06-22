@@ -61,6 +61,14 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+
+        <!-- https://mvnrepository.com/artifact/com.cloudinary/cloudinary-core -->
+<dependency>
+    <groupId>com.cloudinary</groupId>
+    <artifactId>cloudinary-core</artifactId>
+    <version>1.38.0</version>
+</dependency>
+
         <!-- JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
