@@ -153,10 +153,27 @@ public class PostController {
     }
 
     @GetMapping("/slug/{slug}")
-    public Post getPostBySlug(@PathVariable String slug) {
-        return postRepository.findBySlug(slug)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+public Post getPostBySlug(@PathVariable String slug) {
+    return postRepository.findBySlug(slug)
+            .orElseThrow(() -> new RuntimeException("Post not found"));
+}
+
+// ✅ Added new method to fetch post by ID for editing
+@GetMapping("/{id}")
+public Post getPostById(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
+    String token = authHeader.replace("Bearer ", "");
+    String email = tokenProvider.getUsernameFromToken(token);
+
+    Post post = postRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Post not found"));
+
+    if (!post.getUserId().equals(email)) {
+        throw new RuntimeException("Unauthorized to access this post");
     }
+
+    return post;
+}
+
 
     @DeleteMapping("/{id}")
     public String deletePost(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
