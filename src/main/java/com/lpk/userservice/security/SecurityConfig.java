@@ -47,7 +47,7 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
                 "/api/users/login",
                 "/api/users/register",
                 "/api/posts/public",
-                "/api/posts/slug/**" // ✅ Allow GET by slug
+                "/api/posts/slug/**"
             ).permitAll()
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
             .anyRequest().authenticated()
@@ -56,13 +56,11 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
     return http.build();
 }
-
-
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.addAllowedOriginPattern("*"); // ✅ Use pattern to allow multiple domains
+        config.addAllowedOriginPattern("*"); 
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setExposedHeaders(Arrays.asList("Authorization"));

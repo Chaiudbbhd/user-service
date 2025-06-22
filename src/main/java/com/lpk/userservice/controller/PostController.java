@@ -31,33 +31,40 @@ public class PostController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Post createPost(
             @RequestParam("title") String title,
+            @RequestParam("excerpt") String excerpt,
             @RequestParam("content") String content,
+            @RequestParam("tags") String tags,
             @RequestParam("authorName") String authorName,
             @RequestParam("authorBio") String authorBio,
+            @RequestParam("coverImage") MultipartFile coverImage, // ✅ new
             @RequestParam("authorImage") MultipartFile authorImage,
             @RequestParam(value = "status", defaultValue = "published") String status,
             @RequestHeader("Authorization") String authHeader
     ) {
         String token = authHeader.replace("Bearer ", "");
         String email = tokenProvider.getUsernameFromToken(token);
-
-        String imageUrl = uploadService.save(authorImage);
-
+    
+        // Upload both images to Cloudinary
+        String coverImageUrl = uploadService.save(coverImage);     
+        String authorImageUrl = uploadService.save(authorImage);  
+    
         Post post = new Post();
         post.setTitle(title);
+        post.setExcerpt(excerpt);
         post.setContent(content);
+        post.setTags(List.of(tags.split(","))); 
         post.setUserId(email);
+        post.setImage(coverImageUrl); 
         post.setCreatedAt(new Date());
         post.setUpdatedAt(new Date());
-        post.setStatus(status); // dynamic from frontend
-        post.setVisibility("PUBLIC"); // always public
+        post.setStatus(status);
+        post.setVisibility("PUBLIC");
         post.setSlug(generateSlug(title));
-        post.setAuthor(new Author(authorName, authorBio, imageUrl));
-
+        post.setAuthor(new Author(authorName, authorBio, authorImageUrl));
+    
         return postRepository.save(post);
     }
-
-    // ✅ Update post with multipart form
+    
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Post updatePost(
             @PathVariable String id,
@@ -122,18 +129,14 @@ public class PostController {
             post.setStatus("published");
         }
 
-        post.setVisibility("PUBLIC"); // override for consistency
+        post.setVisibility("PUBLIC");
 
         return postRepository.save(post);
     }
-
-    // ✅ Get public & published posts only
     @GetMapping("/public")
     public List<Post> getPublicPosts() {
         return postRepository.findByVisibilityAndStatus("PUBLIC", "published");
     }
-
-    // ✅ Toggle visibility (if needed in future)
     @PatchMapping("/{id}/visibility")
     public Post toggleVisibility(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
@@ -152,15 +155,11 @@ public class PostController {
 
         return postRepository.save(post);
     }
-
-    // ✅ Keep slug route
     @GetMapping("/slug/{slug}")
     public Post getPostBySlug(@PathVariable String slug) {
         return postRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
     }
-
-    // ✅ Get post by ID
     @GetMapping("/{id}")
     public Post getPostById(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
@@ -186,8 +185,6 @@ public List<Post> getMyPostsByStatus(
     return postRepository.findByUserIdAndStatus(email, status.toLowerCase());
 }
 
-
-    // ✅ Delete post
     @DeleteMapping("/{id}")
     public String deletePost(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
@@ -203,8 +200,6 @@ public List<Post> getMyPostsByStatus(
         postRepository.deleteById(id);
         return "Post deleted successfully.";
     }
-
-    // ✅ Slug generator
     private String generateSlug(String title) {
         return title.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("-+$", "").replaceAll("^-+", "");
     }

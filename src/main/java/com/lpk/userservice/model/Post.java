@@ -8,6 +8,7 @@ import java.util.List;
 
 @Document(collection = "posts")
 public class Post {
+
     @Id
     private String id;
     private String userId;
@@ -17,9 +18,11 @@ public class Post {
     private String visibility;
     private Date createdAt;
     private Date updatedAt;
-    private String excerpt;
-    private String image;
-    private List<String> tags;
+
+    private String excerpt;              // ✅ short summary
+    private String image;                // ✅ cover image URL
+    private List<String> tags;           // ✅ tags list
+
     private String slug;
     private Author author;
 

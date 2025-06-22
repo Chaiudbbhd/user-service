@@ -28,7 +28,7 @@ public class UserController {
     private JwtTokenProvider tokenProvider;
     
     @Autowired
-    private PasswordEncoder passwordEncoder;  // ✅ You forgot to inject this
+    private PasswordEncoder passwordEncoder;  
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {

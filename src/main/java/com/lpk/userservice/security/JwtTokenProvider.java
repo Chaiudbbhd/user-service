@@ -13,13 +13,10 @@ import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
-
-    @Value("${jwt.secret}") // Must be a Base64-encoded key in application.properties or Render env
+    @Value("${jwt.secret}") 
     private String jwtSecretEncoded;
-
     private SecretKey jwtSecretKey;
-
-    private final long JWT_EXPIRATION = 86400000L; // 1 day in ms
+    private final long JWT_EXPIRATION = 86400000L;
 
     @PostConstruct
     public void init() {
@@ -27,7 +24,6 @@ public class JwtTokenProvider {
         System.out.println("Decoded key length: " + decodedKey.length * 8 + " bits");
         jwtSecretKey = Keys.hmacShaKeyFor(decodedKey);
     }
-
     public String generateToken(String email) {
         return Jwts.builder()
                 .setSubject(email)
@@ -61,7 +57,6 @@ public class JwtTokenProvider {
             return false;
         }
     }
-
     private boolean isTokenExpired(Claims claims) {
         return claims.getExpiration().before(new Date());
     }
