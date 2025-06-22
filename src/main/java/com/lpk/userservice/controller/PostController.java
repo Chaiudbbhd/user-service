@@ -5,8 +5,6 @@ import com.lpk.userservice.model.Post;
 import com.lpk.userservice.repository.PostRepository;
 import com.lpk.userservice.security.JwtTokenProvider;
 import com.lpk.userservice.service.UploadService;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +27,7 @@ public class PostController {
     @Autowired
     private UploadService uploadService;
 
-    // ✅ Create post with multipart + author
+    // ✅ Create post with multipart + status + public visibility
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Post createPost(
             @RequestParam("title") String title,
@@ -37,6 +35,7 @@ public class PostController {
             @RequestParam("authorName") String authorName,
             @RequestParam("authorBio") String authorBio,
             @RequestParam("authorImage") MultipartFile authorImage,
+            @RequestParam(value = "status", defaultValue = "published") String status,
             @RequestHeader("Authorization") String authHeader
     ) {
         String token = authHeader.replace("Bearer ", "");
@@ -50,8 +49,8 @@ public class PostController {
         post.setUserId(email);
         post.setCreatedAt(new Date());
         post.setUpdatedAt(new Date());
-        post.setStatus("draft");
-        post.setVisibility("PRIVATE");
+        post.setStatus(status); // dynamic from frontend
+        post.setVisibility("PUBLIC"); // always public
         post.setSlug(generateSlug(title));
         post.setAuthor(new Author(authorName, authorBio, imageUrl));
 
@@ -105,9 +104,12 @@ public class PostController {
         return postRepository.save(post);
     }
 
-    // ✅ Legacy JSON post
+    // ✅ Legacy JSON post (optional)
     @PostMapping
-    public Post createPost(@RequestHeader("Authorization") String authHeader, @RequestBody Post post) {
+    public Post createPostJson(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody Post post
+    ) {
         String token = authHeader.replace("Bearer ", "");
         String email = tokenProvider.getUsernameFromToken(token);
 
@@ -117,83 +119,92 @@ public class PostController {
         post.setSlug(generateSlug(post.getTitle()));
 
         if (post.getStatus() == null) {
-            post.setStatus("draft");
+            post.setStatus("published");
         }
-        if (post.getVisibility() == null) {
-            post.setVisibility("PRIVATE");
-        }
+
+        post.setVisibility("PUBLIC"); // override for consistency
 
         return postRepository.save(post);
     }
 
+    // ✅ Get public & published posts only
     @GetMapping("/public")
     public List<Post> getPublicPosts() {
-        return postRepository.findByVisibility("PUBLIC");
+        return postRepository.findByVisibilityAndStatus("PUBLIC", "published");
     }
 
+    // ✅ Toggle visibility (if needed in future)
     @PatchMapping("/{id}/visibility")
     public Post toggleVisibility(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
         String email = tokenProvider.getUsernameFromToken(token);
 
-        Optional<Post> optionalPost = postRepository.findById(id);
-        if (optionalPost.isPresent()) {
-            Post post = optionalPost.get();
-            if (!post.getUserId().equals(email)) {
-                throw new RuntimeException("Unauthorized to change visibility of this post");
-            }
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
 
-            String newVisibility = post.getVisibility().equals("PUBLIC") ? "PRIVATE" : "PUBLIC";
-            post.setVisibility(newVisibility);
-            post.setUpdatedAt(new Date());
-            return postRepository.save(post);
-        } else {
-            throw new RuntimeException("Post not found");
+        if (!post.getUserId().equals(email)) {
+            throw new RuntimeException("Unauthorized to change visibility");
         }
+
+        String newVisibility = post.getVisibility().equals("PUBLIC") ? "PRIVATE" : "PUBLIC";
+        post.setVisibility(newVisibility);
+        post.setUpdatedAt(new Date());
+
+        return postRepository.save(post);
     }
 
+    // ✅ Keep slug route
     @GetMapping("/slug/{slug}")
-public Post getPostBySlug(@PathVariable String slug) {
-    return postRepository.findBySlug(slug)
-            .orElseThrow(() -> new RuntimeException("Post not found"));
-}
+    public Post getPostBySlug(@PathVariable String slug) {
+        return postRepository.findBySlug(slug)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+    }
 
-// ✅ Added new method to fetch post by ID for editing
-@GetMapping("/{id}")
-public Post getPostById(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
+    // ✅ Get post by ID
+    @GetMapping("/{id}")
+    public Post getPostById(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "");
+        String email = tokenProvider.getUsernameFromToken(token);
+
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        if (!post.getUserId().equals(email)) {
+            throw new RuntimeException("Unauthorized to access this post");
+        }
+
+        return post;
+    }
+
+    @GetMapping("/me/{status}")
+public List<Post> getMyPostsByStatus(
+        @PathVariable String status,
+        @RequestHeader("Authorization") String authHeader
+) {
     String token = authHeader.replace("Bearer ", "");
     String email = tokenProvider.getUsernameFromToken(token);
-
-    Post post = postRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Post not found"));
-
-    if (!post.getUserId().equals(email)) {
-        throw new RuntimeException("Unauthorized to access this post");
-    }
-
-    return post;
+    return postRepository.findByUserIdAndStatus(email, status.toLowerCase());
 }
 
 
+    // ✅ Delete post
     @DeleteMapping("/{id}")
     public String deletePost(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
         String email = tokenProvider.getUsernameFromToken(token);
 
-        Optional<Post> optionalPost = postRepository.findById(id);
-        if (optionalPost.isPresent()) {
-            Post post = optionalPost.get();
-            if (!post.getUserId().equals(email)) {
-                throw new RuntimeException("Unauthorized to delete this post");
-            }
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
 
-            postRepository.deleteById(id);
-            return "Post deleted successfully.";
-        } else {
-            throw new RuntimeException("Post not found");
+        if (!post.getUserId().equals(email)) {
+            throw new RuntimeException("Unauthorized to delete this post");
         }
+
+        postRepository.deleteById(id);
+        return "Post deleted successfully.";
     }
 
+    // ✅ Slug generator
     private String generateSlug(String title) {
         return title.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("-+$", "").replaceAll("^-+", "");
     }
