@@ -1,15 +1,27 @@
 package com.lpk.userservice.model;
 
+/**
+ * Represents the author of a post.
+ * Both `_id` and `name` fields now store the email for author identity check.
+ */
 public class Author {
-    private String _id;       // ✅ Add this field
-    private String name;
+
+    private String _id;         // Typically the author's email
+    private String name;        // Also set as email for frontend comparison
     private String bio;
     private String avatarUrl;
 
     public Author() {
     }
 
-    // ✅ Updated constructor
+    /**
+     * Full constructor.
+     *
+     * @param _id        The author's ID (email)
+     * @param name       The author's name (email, for matching frontend token sub)
+     * @param bio        The author's bio
+     * @param avatarUrl  URL to the author's profile image
+     */
     public Author(String _id, String name, String bio, String avatarUrl) {
         this._id = _id;
         this.name = name;
@@ -17,6 +29,7 @@ public class Author {
         this.avatarUrl = avatarUrl;
     }
 
+    // Getters and Setters
     public String get_id() {
         return _id;
     }

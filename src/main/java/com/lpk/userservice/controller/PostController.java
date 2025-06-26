@@ -5,6 +5,7 @@ import com.lpk.userservice.model.Post;
 import com.lpk.userservice.repository.PostRepository;
 import com.lpk.userservice.security.JwtTokenProvider;
 import com.lpk.userservice.service.UploadService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +36,6 @@ public class PostController {
             @RequestParam("excerpt") String excerpt,
             @RequestParam("content") String content,
             @RequestParam("tags") String tags,
-            @RequestParam("authorName") String authorName,
             @RequestParam("authorBio") String authorBio,
             @RequestParam("coverImage") MultipartFile coverImage,
             @RequestParam("authorImage") MultipartFile authorImage,
@@ -60,7 +60,7 @@ public class PostController {
         post.setStatus(status);
         post.setVisibility("PUBLIC");
         post.setSlug(generateSlug(title));
-        post.setAuthor(new Author(email, authorName, authorBio, authorImageUrl));
+        post.setAuthor(new Author(email, email, authorBio, authorImageUrl)); // 👈 name = email
 
         return postRepository.save(post);
     }
@@ -72,7 +72,6 @@ public class PostController {
             @RequestParam("excerpt") String excerpt,
             @RequestParam("content") String content,
             @RequestParam("tags") String tags,
-            @RequestParam("authorName") String authorName,
             @RequestParam("authorBio") String authorBio,
             @RequestParam(value = "authorImage", required = false) MultipartFile authorImage,
             @RequestParam(value = "image", required = false) String coverImageUrl,
@@ -100,11 +99,11 @@ public class PostController {
 
         if (authorImage != null && !authorImage.isEmpty()) {
             String authorImgUrl = uploadService.save(authorImage);
-            post.setAuthor(new Author(email, authorName, authorBio, authorImgUrl));
+            post.setAuthor(new Author(email, email, authorBio, authorImgUrl)); // 👈 name = email
         } else if (post.getAuthor() != null) {
-            post.setAuthor(new Author(email, authorName, authorBio, post.getAuthor().getAvatarUrl()));
+            post.setAuthor(new Author(email, email, authorBio, post.getAuthor().getAvatarUrl())); // 👈
         } else {
-            post.setAuthor(new Author(email, authorName, authorBio, null));
+            post.setAuthor(new Author(email, email, authorBio, null)); // 👈
         }
 
         return postRepository.save(post);
@@ -122,17 +121,13 @@ public class PostController {
         post.setCreatedAt(new Date());
         post.setUpdatedAt(new Date());
         post.setSlug(generateSlug(post.getTitle()));
-
-        if (post.getStatus() == null) {
-            post.setStatus("published");
-        }
-
+        post.setStatus(post.getStatus() != null ? post.getStatus() : "published");
         post.setVisibility("PUBLIC");
 
         if (post.getAuthor() == null) {
-            post.setAuthor(new Author(email, "", "", null));
+            post.setAuthor(new Author(email, email, "", null)); // 👈
         } else {
-            post.getAuthor().set_id(email);
+            post.setAuthor(new Author(email, email, post.getAuthor().getBio(), post.getAuthor().getAvatarUrl())); // 👈
         }
 
         return postRepository.save(post);
