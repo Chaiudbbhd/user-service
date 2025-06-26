@@ -8,6 +8,9 @@ import com.lpk.userservice.service.UploadService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
@@ -36,7 +39,7 @@ public class PostController {
             @RequestParam("tags") String tags,
             @RequestParam("authorName") String authorName,
             @RequestParam("authorBio") String authorBio,
-            @RequestParam("coverImage") MultipartFile coverImage, // ✅ new
+            @RequestParam("coverImage") MultipartFile coverImage, 
             @RequestParam("authorImage") MultipartFile authorImage,
             @RequestParam(value = "status", defaultValue = "published") String status,
             @RequestHeader("Authorization") String authHeader
@@ -156,10 +159,14 @@ public class PostController {
         return postRepository.save(post);
     }
     @GetMapping("/slug/{slug}")
-    public Post getPostBySlug(@PathVariable String slug) {
-        return postRepository.findBySlug(slug)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+public ResponseEntity<?> getPostBySlug(@PathVariable String slug) {
+    Optional<Post> post = postRepository.findBySlug(slug);
+    if (post.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Post not found");
     }
+    return ResponseEntity.ok(post.get());
+}
+
     @GetMapping("/{id}")
     public Post getPostById(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.replace("Bearer ", "");
