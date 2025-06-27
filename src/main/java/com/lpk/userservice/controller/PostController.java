@@ -30,116 +30,121 @@ public class PostController {
     @Autowired
     private UploadService uploadService;
 
+    // ✅ Public posts endpoint
+    @GetMapping("/public")
+    public List<Post> getAllPublicPosts() {
+        return postRepository.findByVisibility("PUBLIC");
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-public Post createPost(
-        @RequestParam("title") String title,
-        @RequestParam("excerpt") String excerpt,
-        @RequestParam("content") String content,
-        @RequestParam("tags") String tags,
-        @RequestParam("authorName") String authorName,
-        @RequestParam("authorBio") String authorBio,
-        @RequestParam("coverImage") MultipartFile coverImage,
-        @RequestParam("authorImage") MultipartFile authorImage,
-        @RequestParam(value = "status", defaultValue = "published") String status,
-        @RequestHeader("Authorization") String authHeader
-) {
-    String token = authHeader.replace("Bearer ", "");
-    String email = tokenProvider.getUsernameFromToken(token);
+    public Post createPost(
+            @RequestParam("title") String title,
+            @RequestParam("excerpt") String excerpt,
+            @RequestParam("content") String content,
+            @RequestParam("tags") String tags,
+            @RequestParam("authorName") String authorName,
+            @RequestParam("authorBio") String authorBio,
+            @RequestParam("coverImage") MultipartFile coverImage,
+            @RequestParam("authorImage") MultipartFile authorImage,
+            @RequestParam(value = "status", defaultValue = "published") String status,
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        String token = authHeader.replace("Bearer ", "");
+        String email = tokenProvider.getUsernameFromToken(token);
 
-    String coverImageUrl = uploadService.save(coverImage);
-    String authorImageUrl = uploadService.save(authorImage);
+        String coverImageUrl = uploadService.save(coverImage);
+        String authorImageUrl = uploadService.save(authorImage);
 
-    Post post = new Post();
-    post.setTitle(title);
-    post.setExcerpt(excerpt);
-    post.setContent(content);
-    post.setTags(List.of(tags.split(",")));
-    post.setUserId(email);
-    post.setImage(coverImageUrl);
-    post.setCreatedAt(new Date());
-    post.setUpdatedAt(new Date());
-    post.setStatus(status);
-    post.setVisibility("PUBLIC");
-    post.setSlug(generateSlug(title));
-    post.setAuthor(new Author(email, authorName, authorBio, authorImageUrl)); // ✅ use email as _id, name as authorName
-
-    return postRepository.save(post);
-}
-
-@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-public Post updatePost(
-        @PathVariable String id,
-        @RequestParam("title") String title,
-        @RequestParam("excerpt") String excerpt,
-        @RequestParam("content") String content,
-        @RequestParam("tags") String tags,
-        @RequestParam("authorName") String authorName,
-        @RequestParam("authorBio") String authorBio,
-        @RequestParam(value = "authorImage", required = false) MultipartFile authorImage,
-        @RequestParam(value = "image", required = false) String coverImageUrl,
-        @RequestHeader("Authorization") String authHeader
-) {
-    String token = authHeader.replace("Bearer ", "");
-    String email = tokenProvider.getUsernameFromToken(token);
-
-    Post post = postRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Post not found"));
-
-    if (!post.getUserId().equals(email)) {
-        throw new RuntimeException("Unauthorized to update this post");
-    }
-
-    post.setTitle(title);
-    post.setExcerpt(excerpt);
-    post.setContent(content);
-    post.setTags(List.of(tags.split(",")));
-    post.setUpdatedAt(new Date());
-
-    if (coverImageUrl != null && !coverImageUrl.isEmpty()) {
+        Post post = new Post();
+        post.setTitle(title);
+        post.setExcerpt(excerpt);
+        post.setContent(content);
+        post.setTags(List.of(tags.split(",")));
+        post.setUserId(email);
         post.setImage(coverImageUrl);
+        post.setCreatedAt(new Date());
+        post.setUpdatedAt(new Date());
+        post.setStatus(status);
+        post.setVisibility("PUBLIC");
+        post.setSlug(generateSlug(title));
+        post.setAuthor(new Author(email, authorName, authorBio, authorImageUrl));
+
+        return postRepository.save(post);
     }
 
-    if (authorImage != null && !authorImage.isEmpty()) {
-        String authorImgUrl = uploadService.save(authorImage);
-        post.setAuthor(new Author(email, authorName, authorBio, authorImgUrl));
-    } else if (post.getAuthor() != null) {
-        post.setAuthor(new Author(email, authorName, authorBio, post.getAuthor().getAvatarUrl()));
-    } else {
-        post.setAuthor(new Author(email, authorName, authorBio, null));
+    @PostMapping
+    public Post createPostJson(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody Post post
+    ) {
+        String token = authHeader.replace("Bearer ", "");
+        String email = tokenProvider.getUsernameFromToken(token);
+
+        post.setUserId(email);
+        post.setCreatedAt(new Date());
+        post.setUpdatedAt(new Date());
+        post.setSlug(generateSlug(post.getTitle()));
+        post.setStatus(post.getStatus() != null ? post.getStatus() : "published");
+        post.setVisibility("PUBLIC");
+
+        if (post.getAuthor() == null) {
+            post.setAuthor(new Author(email, "", "", null));
+        } else {
+            post.setAuthor(new Author(
+                    email,
+                    post.getAuthor().getName(),
+                    post.getAuthor().getBio(),
+                    post.getAuthor().getAvatarUrl()
+            ));
+        }
+
+        return postRepository.save(post);
     }
 
-    return postRepository.save(post);
-}
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Post updatePost(
+            @PathVariable String id,
+            @RequestParam("title") String title,
+            @RequestParam("excerpt") String excerpt,
+            @RequestParam("content") String content,
+            @RequestParam("tags") String tags,
+            @RequestParam("authorName") String authorName,
+            @RequestParam("authorBio") String authorBio,
+            @RequestParam(value = "authorImage", required = false) MultipartFile authorImage,
+            @RequestParam(value = "image", required = false) String coverImageUrl,
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        String token = authHeader.replace("Bearer ", "");
+        String email = tokenProvider.getUsernameFromToken(token);
 
-@PostMapping
-public Post createPostJson(
-        @RequestHeader("Authorization") String authHeader,
-        @RequestBody Post post
-) {
-    String token = authHeader.replace("Bearer ", "");
-    String email = tokenProvider.getUsernameFromToken(token);
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
 
-    post.setUserId(email);
-    post.setCreatedAt(new Date());
-    post.setUpdatedAt(new Date());
-    post.setSlug(generateSlug(post.getTitle()));
-    post.setStatus(post.getStatus() != null ? post.getStatus() : "published");
-    post.setVisibility("PUBLIC");
+        if (!post.getUserId().equals(email)) {
+            throw new RuntimeException("Unauthorized to update this post");
+        }
 
-    if (post.getAuthor() == null) {
-        post.setAuthor(new Author(email, "", "", null));
-    } else {
-        post.setAuthor(new Author(
-                email,
-                post.getAuthor().getName(), // ✅ preserve author's name from request
-                post.getAuthor().getBio(),
-                post.getAuthor().getAvatarUrl()
-        ));
+        post.setTitle(title);
+        post.setExcerpt(excerpt);
+        post.setContent(content);
+        post.setTags(List.of(tags.split(",")));
+        post.setUpdatedAt(new Date());
+
+        if (coverImageUrl != null && !coverImageUrl.isEmpty()) {
+            post.setImage(coverImageUrl);
+        }
+
+        if (authorImage != null && !authorImage.isEmpty()) {
+            String authorImgUrl = uploadService.save(authorImage);
+            post.setAuthor(new Author(email, authorName, authorBio, authorImgUrl));
+        } else if (post.getAuthor() != null) {
+            post.setAuthor(new Author(email, authorName, authorBio, post.getAuthor().getAvatarUrl()));
+        } else {
+            post.setAuthor(new Author(email, authorName, authorBio, null));
+        }
+
+        return postRepository.save(post);
     }
-
-    return postRepository.save(post);
-}
-
 
     @GetMapping("/slug/{slug}")
     public ResponseEntity<?> getPostBySlug(@PathVariable String slug) {
