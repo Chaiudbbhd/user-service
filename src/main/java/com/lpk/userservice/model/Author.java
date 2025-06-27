@@ -1,44 +1,29 @@
 package com.lpk.userservice.model;
 
-/**
- * Represents the author of a post.
- * `_id` is typically the author's email (used for identity check).
- * `name` is the display name.
- */
 public class Author {
-
-    private String _id;         // Unique identifier, usually the author's email
-    private String name;        // Display name
+    private String email;       // ✅ Add this field!
+    private String name;
     private String bio;
     private String avatarUrl;
 
     public Author() {
-        // Default constructor
     }
 
-    /**
-     * Full constructor to create an Author instance.
-     *
-     * @param _id        Author's unique identifier (typically email)
-     * @param name       Author's display name
-     * @param bio        Author's biography
-     * @param avatarUrl  URL of the author's profile image
-     */
-    public Author(String _id, String name, String bio, String avatarUrl) {
-        this._id = _id;
+    public Author(String email, String name, String bio, String avatarUrl) {
+        this.email = email;
         this.name = name;
         this.bio = bio;
         this.avatarUrl = avatarUrl;
     }
 
-    // Getters and Setters
+    // ✅ Getters & Setters
 
-    public String get_id() {
-        return _id;
+    public String getEmail() {
+        return email;
     }
 
-    public void set_id(String _id) {
-        this._id = _id;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getName() {
