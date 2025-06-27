@@ -10,7 +10,8 @@ import java.util.List;
 public class Post {
 
     @Id
-    private String id;
+    private String _id; // ✅ Use _id to match MongoDB and frontend
+
     private String userId;
     private String title;
     private String content;
@@ -19,25 +20,24 @@ public class Post {
     private Date createdAt;
     private Date updatedAt;
 
-    private String excerpt;              // ✅ short summary
-    private String image;                // ✅ cover image URL
-    private List<String> tags;           // ✅ tags list
+    private String excerpt;
+    private String image;
+    private List<String> tags;
 
     private String slug;
     private Author author;
 
     public Post() {
-        // Default constructor
     }
 
-    // Getters and Setters
+    // ✅ Getters and Setters
 
-    public String getId() {
-        return id;
+    public String get_id() {
+        return _id;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void set_id(String _id) {
+        this._id = _id;
     }
 
     public String getUserId() {

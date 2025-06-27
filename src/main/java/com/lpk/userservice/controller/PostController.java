@@ -182,7 +182,8 @@ public class PostController {
     }
 
     @DeleteMapping("/{id}")
-    public String deletePost(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
+public ResponseEntity<?> deletePost(@PathVariable String id, @RequestHeader("Authorization") String authHeader) {
+    try {
         String token = authHeader.replace("Bearer ", "");
         String email = tokenProvider.getUsernameFromToken(token);
 
@@ -190,12 +191,17 @@ public class PostController {
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
         if (!post.getUserId().equals(email)) {
-            throw new RuntimeException("Unauthorized to delete this post");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Unauthorized to delete this post");
         }
 
         postRepository.deleteById(id);
-        return "Post deleted successfully.";
+        return ResponseEntity.ok("Post deleted successfully.");
+
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
     }
+}
+
 
     private String generateSlug(String title) {
         return title.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("-+$", "").replaceAll("^-+", "");
