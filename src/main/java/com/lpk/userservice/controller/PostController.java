@@ -30,12 +30,12 @@ public class PostController {
     @Autowired
     private UploadService uploadService;
 
-    // ✅ Public posts endpoint
     @GetMapping("/public")
     public List<Post> getAllPublicPosts() {
         return postRepository.findByVisibility("PUBLIC");
     }
 
+    // ✅ Post creation with image upload
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Post createPost(
             @RequestParam("title") String title,
@@ -67,11 +67,12 @@ public class PostController {
         post.setStatus(status);
         post.setVisibility("PUBLIC");
         post.setSlug(generateSlug(title));
-        post.setAuthor(new Author(email, authorName, authorBio, authorImageUrl));
+        post.setAuthor(new Author(email, authorName, authorBio, authorImageUrl)); // ✅ include email
 
         return postRepository.save(post);
     }
 
+    // ✅ Post creation via JSON
     @PostMapping
     public Post createPostJson(
             @RequestHeader("Authorization") String authHeader,
@@ -101,6 +102,7 @@ public class PostController {
         return postRepository.save(post);
     }
 
+    // ✅ Post update with multipart data
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Post updatePost(
             @PathVariable String id,
@@ -136,11 +138,10 @@ public class PostController {
 
         if (authorImage != null && !authorImage.isEmpty()) {
             String authorImgUrl = uploadService.save(authorImage);
-            post.setAuthor(new Author(email, authorName, authorBio, authorImgUrl));
-        } else if (post.getAuthor() != null) {
-            post.setAuthor(new Author(email, authorName, authorBio, post.getAuthor().getAvatarUrl()));
+            post.setAuthor(new Author(email, authorName, authorBio, authorImgUrl)); // ✅ include email
         } else {
-            post.setAuthor(new Author(email, authorName, authorBio, null));
+            String existingAvatar = post.getAuthor() != null ? post.getAuthor().getAvatarUrl() : null;
+            post.setAuthor(new Author(email, authorName, authorBio, existingAvatar)); // ✅ include email
         }
 
         return postRepository.save(post);
