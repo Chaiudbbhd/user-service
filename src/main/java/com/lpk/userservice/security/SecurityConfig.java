@@ -43,15 +43,17 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         .csrf(csrf -> csrf.disable())
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(authz -> authz
-            .requestMatchers(
-                "/api/users/login",
-                "/api/users/register",
-                "/api/posts/public",
-                "/api/posts/slug/**"
-            ).permitAll()
-            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            .anyRequest().authenticated()
-        )
+        .requestMatchers(
+            "/api/users/login",
+            "/api/users/register",
+            "/api/posts/public",
+            "/api/posts/slug/**",
+            "/api/chat" // ✅ Add this line without error
+        ).permitAll()
+        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+        .anyRequest().authenticated()
+    )
+    
         .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
