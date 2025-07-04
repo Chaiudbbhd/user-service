@@ -47,8 +47,7 @@ public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
             "/api/users/login",
             "/api/users/register",
             "/api/posts/public",
-            "/api/posts/slug/**",
-            "/api/chat" // ✅ Add this line without error
+            "/api/posts/slug/**"
         ).permitAll()
         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
         .anyRequest().authenticated()
