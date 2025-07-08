@@ -13,7 +13,7 @@ It powers the blog platform, providing RESTful APIs for posts, categories, comme
 
 - **Language:** Java
 - **Framework:** Spring Boot
-- **Database:** MySQL / PostgreSQL (configure as needed)
+- **Database:** Mongo DB Atlas (configure as needed)
 - **API:** RESTful APIs
 - **ORM:** Hibernate / JPA
 - **Build Tool:** Maven
