@@ -52,54 +52,64 @@ cd voices-of-java-dev-backend
 
 Update your database credentials in src/main/resources/application.properties:
 
-# Application Name
+-> Application Name
 spring.application.name=user-service
 
-# MongoDB Configuration
+-> MongoDB Configuration
 spring.data.mongodb.uri=${MONGO_URI}
 spring.data.mongodb.database=22kd1a0548(name it with your db name)
 
-# JWT Authentication Settings
+-> JWT Authentication Settings
 jwt.secret=${JWT_SECRET}
 jwt.expiration=86400000
 
-# Cloudinary Configuration for Image Upload
+-> Cloudinary Configuration for Image Upload
 cloudinary.cloud_name=${CLOUDINARY_CLOUD_NAME}
 cloudinary.api_key=${CLOUDINARY_API_KEY}
 cloudinary.api_secret=${CLOUDINARY_API_SECRET}
 
-# File Upload Limits
+-> File Upload Limits
 spring.servlet.multipart.max-file-size=10MB
 spring.servlet.multipart.max-request-size=10MB
 
-# Logging Levels
+-> Logging Levels
 logging.level.org.springframework.security=DEBUG
 logging.level.org.springframework.web=DEBUG
 
 3️⃣ Build and Run
 
 ./mvnw clean install
+
 ./mvnw spring-boot:run
+
 Server will start at: http://localhost:8080/
 
 🔐 API Authentication (Optional)
+
 JWT-based authentication
 
 Role-based access control (Admin, User)
 
 📑 API Endpoints (Examples)
-Method	Endpoint	Description
-GET	/api/posts	Get all blog posts
-POST	/api/posts	Create a new post
-GET	/api/categories	List all categories
-POST	/api/auth/register	Register new user
-POST	/api/auth/login	Login & get JWT token
+
+# Method	Endpoint	Description
+-> GET	/api/posts	Get all blog posts
+
+-> POST	/api/posts	Create a new post
+
+-> GET	/api/categories	List all categories
+
+-> POST	/api/auth/register	Register new user
+
+-> POST	/api/auth/login	Login & get JWT token
+
 
 🐳 Docker (Optional)
 Build Docker image:
 
 
 docker build -t voicesofjavadev-backend .
+
 Run the container:
 
 docker run -p 8080:8080 voicesofjavadev-backend
@@ -107,6 +117,7 @@ docker run -p 8080:8080 voicesofjavadev-backend
 📦 Deployment
 
 This backend is deployed on Render:
+
 ➡️ https://voices-of-java-dev.onrender.com/
 
 🙌 Contributions
