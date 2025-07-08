@@ -21,11 +21,17 @@ It powers the blog platform, providing RESTful APIs for posts, categories, comme
 ---
 
 src/main/java/com/voicesofjavadev
+
 ├── controller      → REST Controllers (handles API requests and responses)
+
 ├── model           → Entity classes (defines database models)
+
 ├── repository      → JPA Repositories (data access layer)
+
 ├── service         → Business logic (application services)
+
 ├── dto             → Data Transfer Objects (for API request/response payloads)
+
 └── config          → Security & Application Configurations
 
 
