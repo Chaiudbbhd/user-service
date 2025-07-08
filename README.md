@@ -3,7 +3,9 @@
 This is the **backend API** for the _Voices of Java Dev_ blog website, built using **Spring Boot**.  
 It powers the blog platform, providing RESTful APIs for posts, categories, comments, and user management.
 
-🌐 **Live Website:** [voices-of-java-dev.onrender.com](https://voices-of-java-dev.onrender.com/)  (Hey everyone, due to a minor issue, the posts may take 1-2 minutes to load. Kindly wait for a short while. Thank you for your patience!)
+🌐 **Live Website:** [voices-of-java-dev.onrender.com](https://voices-of-java-dev.onrender.com/)  
+
+(Hey everyone, due to a minor issue, the posts may take 1-2 minutes to load. Kindly wait for a short while. Thank you for your patience!)
 
 ---
 
