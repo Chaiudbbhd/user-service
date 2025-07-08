@@ -41,17 +41,40 @@ src/main/java/com/voicesofjavadev
 
 ⚙️ Setup Instructions
 
+
 1️⃣ Clone the Repository
+
 
 git clone https://github.com/Chaiudbbhd/voices-of-java-dev-backend.git
 cd voices-of-java-dev-backend
 
 2️⃣ Configure Database
+
 Update your database credentials in src/main/resources/application.properties:
 
-spring.datasource.url=jdbc:mysql://localhost:3306/blog_db
-spring.datasource.username=root
-spring.datasource.password=your_password
+# Application Name
+spring.application.name=user-service
+
+# MongoDB Configuration
+spring.data.mongodb.uri=${MONGO_URI}
+spring.data.mongodb.database=22kd1a0548(name it with your db name)
+
+# JWT Authentication Settings
+jwt.secret=${JWT_SECRET}
+jwt.expiration=86400000
+
+# Cloudinary Configuration for Image Upload
+cloudinary.cloud_name=${CLOUDINARY_CLOUD_NAME}
+cloudinary.api_key=${CLOUDINARY_API_KEY}
+cloudinary.api_secret=${CLOUDINARY_API_SECRET}
+
+# File Upload Limits
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+
+# Logging Levels
+logging.level.org.springframework.security=DEBUG
+logging.level.org.springframework.web=DEBUG
 
 3️⃣ Build and Run
 
